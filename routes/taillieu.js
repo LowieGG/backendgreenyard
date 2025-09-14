@@ -82,7 +82,7 @@ router.post("/startTransport", async (req, res) => {
       { camion },
       { 
         task: "Vol", 
-        location: "Transport",
+        location: "Taillieu",
         stopVullen: new Date() 
       },
       { new: true }
@@ -191,7 +191,7 @@ router.post("/stop", async (req, res) => {
 // Alle camions op Idle zetten
 router.post("/allIdle", async (req, res) => {
   try {
-    await CamionStatus.updateMany({}, { 
+    await CamionStatus.updateMany({}, {
       task: "Leeg",
       location: "Taillieu",
       startVullen: null,
@@ -199,7 +199,16 @@ router.post("/allIdle", async (req, res) => {
       startRijden: null,
       stopRijden: null,
       startLossen: null,
-      stopLossen: null
+      stopLossen: null,
+      // Voeg alle kwaliteitsvelden toe:
+      vulBeschadigdeGranen: 0,
+      vulZwarteRingen: 0,
+      vulVerkeerdGesnedenGranen: 0,
+      losBeschadigdeGranen: 0,
+      losZwarteRingen: 0,
+      losVerkeerdGesnedenGranen: 0,
+      vulkwaliteit: null,
+      loskwaliteit: null
     });
     res.json({ success: true });
   } catch (err) {

@@ -19,6 +19,13 @@ app.use("/api/chauffeur", chauffeurRoutes);
 
 app.use('/api/greenyard', require('./routes/greenyard'));
 
+// VOEG DEZE REGEL TOE:
+app.use('/api/kwaliteit', require('./routes/kwaliteit'));
+
+app.use("/api/camions", require('./routes/camions'));
+const lotRoutes = require("./routes/lot");
+app.use("/api/lot", lotRoutes);
+
 
 // Verbinding met MongoDB
 mongoose.connect(process.env.MONGO_URI)

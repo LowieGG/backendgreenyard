@@ -18,15 +18,8 @@ router.get("/status", async (req, res) => {
 router.get("/factoryStatus", async (req, res) => {
   try {
     const factories = await FactoryStatus.find();
-    const status = {
-      Taillieu: true,
-      Greenyard: true
-    };
-    
-    factories.forEach(factory => {
-      status[factory.fabriek] = factory.status;
-    });
-    
+    const status = { Taillieu: true, Greenyard: true };
+    factories.forEach(f => { status[f.fabriek] = f.status; });
     res.json({ status });
   } catch (err) {
     console.error("Fout bij ophalen factory status:", err);
@@ -34,18 +27,22 @@ router.get("/factoryStatus", async (req, res) => {
   }
 });
 
-// Transport starten - FIXED: task moet "Onderweg" zijn!
+// Transport starten
 router.post("/startTransport", async (req, res) => {
-  const { camion } = req.body;
+  const { camion, from, to } = req.body;
+
   try {
+    let update = { location: "Transport" };
+
+    if (to === "Greenyard") {
+      update = { ...update, task: "Onderweg", startRijden: new Date(), stopRijden: null };
+    } else if (to === "Taillieu") {
+      update = { ...update, task: "Leeg onderweg", startTerugRijden: new Date(), stopTerugRijden: null };
+    }
+
     const task = await CamionStatus.findOneAndUpdate(
       { camion },
-      { 
-        location: "Transport", 
-        task: "Onderweg",  // <-- FIXED: was "Vol", moet "Onderweg" zijn!
-        startRijden: new Date(), 
-        stopRijden: null 
-      },
+      update,
       { new: true }
     );
     res.json({ success: true, task });
@@ -55,18 +52,21 @@ router.post("/startTransport", async (req, res) => {
   }
 });
 
-// Transport stoppen - camion aangekomen bij Greenyard
+// Transport stoppen
 router.post("/stopTransport", async (req, res) => {
-  const { camion } = req.body;
+  const { camion, location } = req.body;
   try {
+    let update = { location, startRijden: null };
+
+    if (location === "Greenyard") {
+      update = { ...update, task: "Vol", stopRijden: new Date() };
+    } else if (location === "Taillieu") {
+      update = { ...update, task: "Leeg", stopTerugRijden: new Date(), startTerugRijden: null };
+    }
+
     const task = await CamionStatus.findOneAndUpdate(
       { camion },
-      { 
-        location: "Greenyard", 
-        task: "Vol", 
-        stopRijden: new Date(),
-        startRijden: null  // <-- Reset startRijden
-      },
+      update,
       { new: true }
     );
     res.json({ success: true, task });
@@ -87,6 +87,8 @@ router.post("/returnToTaillieu", async (req, res) => {
         location: "Taillieu",
         startRijden: null,
         stopRijden: null,
+        startTerugRijden: null,
+        stopTerugRijden: null,
         startVullen: null,
         stopVullen: null,
         startLossen: null,
@@ -107,18 +109,39 @@ router.post("/allIdle", async (req, res) => {
     await CamionStatus.updateMany({}, { 
       task: "Leeg",
       location: "Taillieu",
+
+      // Reset proces-tijdstippen
       startVullen: null,
       stopVullen: null,
       startRijden: null,
       stopRijden: null,
+      startTerugRijden: null,
+      stopTerugRijden: null,
       startLossen: null,
-      stopLossen: null
+      stopLossen: null,
+      startFabricage: null,
+      stopFabricage: null,
+
+      // Reset kwaliteitsmetingen vullen
+      vulBeschadigdeGranen: 0,
+      vulZwarteRingen: 0,
+      vulVerkeerdGesnedenGranen: 0,
+      vulkwaliteit: null,
+
+      // Reset kwaliteitsmetingen lossen
+      losBeschadigdeGranen: 0,
+      losZwarteRingen: 0,
+      losVerkeerdGesnedenGranen: 0,
+      loskwaliteit: null
     });
+
     res.json({ success: true });
   } catch (err) {
     console.error("Fout bij alle camions idle zetten:", err);
     res.status(500).json({ success: false, error: "Server error" });
   }
 });
+
+
 
 module.exports = router;

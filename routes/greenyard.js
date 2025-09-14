@@ -182,7 +182,7 @@ router.post("/returnToTaillieu", async (req, res) => {
 // Alle camions op Idle zetten
 router.post("/allIdle", async (req, res) => {
   try {
-    await CamionStatus.updateMany({}, { 
+    await CamionStatus.updateMany({}, {
       task: "Leeg",
       location: "Taillieu",
       startVullen: null,
@@ -190,12 +190,20 @@ router.post("/allIdle", async (req, res) => {
       startRijden: null,
       stopRijden: null,
       startLossen: null,
-      stopLossen: null
+      stopLossen: null,
+      // Alle kwaliteitsvelden resetten:
+      vulBeschadigdeGranen: 0,
+      vulZwarteRingen: 0,
+      vulVerkeerdGesnedenGranen: 0,
+      losBeschadigdeGranen: 0,
+      losZwarteRingen: 0,
+      losVerkeerdGesnedenGranen: 0,
+      vulkwaliteit: null,
+      loskwaliteit: null
     });
     res.json({ success: true });
   } catch (err) {
-    console.error("Fout bij alle camions idle zetten:", err);
-    res.status(500).json({ success: false, error: "Server error" });
+    res.status(500).json({ success: false });
   }
 });
 

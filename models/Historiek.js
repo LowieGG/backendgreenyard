@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
-const CamionStatusSchema = new mongoose.Schema({
-  camion: { type: String, required: true, unique: true },
+const HistoriekSchema = new mongoose.Schema({
+  camion: { type: String, required: true },
   task: { type: String, default: "Idle" },
-  location: { type: String, default: "Taillieu" }, // Taillieu, Transport, Greenyard
+  location: { type: String, default: "Taillieu" },
 
   startVullen: { type: Date, default: null },
   stopVullen: { type: Date, default: null },
@@ -16,24 +16,18 @@ const CamionStatusSchema = new mongoose.Schema({
   startTerugRijden: { type: Date, default: null },
   stopTerugRijden: { type: Date, default: null },
 
-  // Kwaliteitsmetingen vullen
   vulBeschadigdeGranen: { type: Number, default: 0 },
   vulZwarteRingen: { type: Number, default: 0 },
   vulVerkeerdGesnedenGranen: { type: Number, default: 0 },
 
-  // Kwaliteitsmetingen lossen
   losBeschadigdeGranen: { type: Number, default: 0 },
   losZwarteRingen: { type: Number, default: 0 },
   losVerkeerdGesnedenGranen: { type: Number, default: 0 },
 
-  // Kwaliteit classificatie
   vulkwaliteit: { type: String, enum: ["A", "B", null], default: null },
   loskwaliteit: { type: String, enum: ["A", "B", null], default: null },
 
-  // Nieuw veld: lotnummer
-  lotnummer: { type: String, default: "" },
-}, {
-  timestamps: true
-});
+  lotnummer: { type: String, required: true },
+}, { timestamps: true });
 
-module.exports = mongoose.model("CamionStatus", CamionStatusSchema);
+module.exports = mongoose.model("Historiek", HistoriekSchema);
